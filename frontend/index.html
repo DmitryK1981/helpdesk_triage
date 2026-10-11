@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helpdesk Triage</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div>
+      <h1>Helpdesk Triage</h1>
+      <p class="subtitle">Классификация обращений, черновики ответов, аудит истории</p>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="submit">Новое обращение</button>
+      <button class="tab" data-tab="history">История и аудит</button>
+    </nav>
+  </header>
+
+  <!-- ========== TAB: Новое обращение ========== -->
+  <section id="tab-submit" class="tab-panel active">
+    <div class="panel">
+      <form id="triage-form">
+        <label for="text">Текст обращения</label>
+        <textarea id="text" maxlength="2000" required
+          placeholder="Например: Не могу оплатить заказ, карта не проходит"></textarea>
+        <div class="counter"><span id="count">0</span>/2000</div>
+
+        <div class="row">
+          <div>
+            <label for="channel">Канал</label>
+            <select id="channel">
+              <option value="chat">чат</option>
+              <option value="email">почта</option>
+              <option value="form">форма на сайте</option>
+            </select>
+          </div>
+          <div>
+            <label for="client_id">client_id</label>
+            <input id="client_id" value="demo-client-1" required>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="primary" id="submit-btn">Отправить</button>
+          <button type="button" class="secondary" id="clear-btn">Очистить</button>
+        </div>
+        <div class="error-msg" id="error-msg"></div>
+      </form>
+    </div>
+
+    <div class="panel result" id="result-panel">
+      <h2>Результат</h2>
+      <div class="badges">
+        <span class="badge" id="badge-category"></span>
+        <span class="badge" id="badge-confidence"></span>
+        <span class="badge" id="badge-escalate"></span>
+      </div>
+      <div class="draft" id="draft-reply"></div>
+    </div>
+  </section>
+
+  <!-- ========== TAB: История и аудит ========== -->
+  <section id="tab-history" class="tab-panel">
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-tile">
+        <div class="stat-label">Всего обращений</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Доля эскалаций</div>
+        <div class="stat-value" id="stat-escalated">—</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Ошибки LLM</div>
+        <div class="stat-value" id="stat-errors">—</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Категории</div>
+        <div class="cat-chart" id="cat-chart"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Обращения</h2>
+        <button type="button" class="link-btn" id="refresh-btn">Обновить</button>
+      </div>
+
+      <div class="filters">
+        <div class="search">
+          <label for="f-q">Поиск по тексту / client_id</label>
+          <input id="f-q" placeholder="введите текст...">
+        </div>
+        <div>
+          <label for="f-category">Категория</label>
+          <select id="f-category">
+            <option value="">все</option>
+            <option value="billing">Оплата</option>
+            <option value="support">Поддержка</option>
+            <option value="complaint">Жалоба</option>
+            <option value="other">Другое</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-confidence">Уверенность</label>
+          <select id="f-confidence">
+            <option value="">все</option>
+            <option value="high">высокая</option>
+            <option value="medium">средняя</option>
+            <option value="low">низкая</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-channel">Канал</label>
+          <select id="f-channel">
+            <option value="">все</option>
+            <option value="chat">чат</option>
+            <option value="email">почта</option>
+            <option value="form">форма на сайте</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-escalate">Эскалация</label>
+          <select id="f-escalate">
+            <option value="">все</option>
+            <option value="true">да</option>
+            <option value="false">нет</option>
+          </select>
+        </div>
+        <div class="checkbox-field">
+          <input type="checkbox" id="f-errors">
+          <label for="f-errors">Только с ошибками</label>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Время</th><th>client_id</th><th>канал</th>
+            <th>текст</th><th>категория</th><th>уверенность</th><th>эск.</th><th>ошибка</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state" style="display:none">Ничего не найдено по этим фильтрам</div>
+
+      <div class="pagination">
+        <span id="pagination-info"></span>
+        <div class="controls">
+          <select id="page-size">
+            <option value="10">10 / стр.</option>
+            <option value="20" selected>20 / стр.</option>
+            <option value="50">50 / стр.</option>
+          </select>
+          <button type="button" id="prev-page">← Назад</button>
+          <button type="button" id="next-page">Вперёд →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3>Обращение #<span id="d-id"></span></h3>
+    <button class="close" id="drawer-close" aria-label="Закрыть">✕</button>
+  </div>
+  <dl>
+    <dt>Время</dt><dd id="d-time"></dd>
+    <dt>client_id / канал</dt><dd id="d-client"></dd>
+    <dt>Текст обращения</dt><dd id="d-text"></dd>
+    <dt>Категория / уверенность / эскалация</dt><dd id="d-flags"></dd>
+    <dt>Черновик ответа</dt><dd id="d-draft"></dd>
+  </dl>
+  <div id="d-error-wrap" style="display:none">
+    <dt style="font-size:.75rem;color:var(--text-muted);text-transform:uppercase;margin-top:14px;">Ошибка LLM</dt>
+    <div class="error-box" id="d-error" style="margin-top:4px;"></div>
+  </div>
+</div>
+
+<script src="/assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+tickets.db
+*.db
+.pytest_cache/
+demo/*.mp4
+.claude/
+/data/
